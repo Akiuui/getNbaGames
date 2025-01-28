@@ -1,10 +1,8 @@
-from flask import Flask
 import os
 import requests
 from dotenv import load_dotenv
 from datetime import datetime
 
-app = Flask(__name__)
 load_dotenv()
 
 def fetchGames(date):
@@ -20,13 +18,43 @@ def fetchGames(date):
     else:
         return None
 
+def fetchPlayersStats():
+    return None
+
+def formatGameData(data):
+    delete = [  
+                "league",
+                "season",
+                "stage",
+                "status",
+                "periods",
+                "arena",
+                "officials",
+                "timesTied",
+                "leadChanges",
+                "nugget"
+            ]
+
+    for item in delete:
+        if item in data:
+            del data[item]
+
+    return data
+
+#START
+
 DTnow = datetime.now()
 DTformatted = DTnow.strftime("%Y-%m-%d")
-fetchGames(DTformatted)
 
-# @app.route('/')
-# def home():
-#     return "Hello, Flask!"
+resJson = fetchGames(DTformatted) #We get json
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if resJson is None:
+    print("resJson is None")
+    exit()
+
+games = []
+for item in resJson["response"]:
+     games.append(formatGameData(item))
+
+for i in games:
+    print(i)
