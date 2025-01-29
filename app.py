@@ -1,60 +1,70 @@
 import os
-import requests
-from dotenv import load_dotenv
 from datetime import datetime
+from pymongo import MongoClient
 
+from fetchers import fetchGames, fetchPlayersStats
+from formatters import deletePropsFromStruct, drillForProp
+
+from dotenv import load_dotenv
 load_dotenv()
 
-def fetchGames(date):
-    url = f"https://v2.nba.api-sports.io/games?date={date}"
-    headers = {
-        'x-rapidapi-host': "v2.nba.api-sports.io",
-        'x-rapidapi-key': os.environ.get("API-KEY")
-    }
-    res = requests.get(url, headers=headers)
-
-    if res.status_code == 200:
-        return res.json()
-    else:
-        return None
-
-def fetchPlayersStats():
-    return None
-
-def formatGameData(data):
-    delete = [  
-                "league",
-                "season",
-                "stage",
-                "status",
-                "periods",
-                "arena",
-                "officials",
-                "timesTied",
-                "leadChanges",
-                "nugget"
-            ]
-
-    for item in delete:
-        if item in data:
-            del data[item]
-
-    return data
-
-#START
-
-DTnow = datetime.now()
+#We take todays date and format it to the needed format
+DTnow = datetime.now() 
 DTformatted = DTnow.strftime("%Y-%m-%d")
 
-resJson = fetchGames(DTformatted) #We get json
+#Fetches games based on the date
+res = fetchGames(DTformatted)
 
-if resJson is None:
+if res is None:
     print("resJson is None")
     exit()
 
-games = []
-for item in resJson["response"]:
-     games.append(formatGameData(item))
+#Formats all the data
+propsToDelete = [  
+            "league",
+            "season",
+            "stage",
+            "status",
+            "periods",
+            "arena",
+            "officials",
+            "timesTied",
+            "leadChanges",
+            "nugget"
+        ]
 
-for i in games:
-    print(i)
+games = []
+for item in res["response"]:
+     formatted = deletePropsFromStruct(item, propsToDelete)
+     formatted = drillForProp(formatted, "date", "start")
+     games.append(formatted)
+
+# We connect and save the data to db
+try:
+    client = MongoClient(os.environ.get("MONGO-URI"))
+    db = client["NbaGames"]
+    collection = db["NbaGames"]
+
+    #Filtering duplicates
+    filterGames = []
+    for game in games:
+        if not collection.find_one({"_id": game["id"]}):
+            filterGames.append(game)
+
+    for game in filterGames:
+        game["_id"] = game["id"]
+        game.pop("id", None)
+
+    if filterGames:
+        result = collection.insert_many(filterGames)
+        if result.acknowledged:
+            print(f"Inserted {len(result.inserted_ids)} new games, into MongoDB")
+        else:
+            print("Insertion failed!")
+    else: 
+        print("No new games to insert.!")
+
+except Exception as e:
+    print(f"Error: {e}")
+finally:
+    client.close()
