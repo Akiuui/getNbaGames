@@ -9,10 +9,9 @@ from formatters import deletePropsFromStruct, drillForProp
 from dotenv import load_dotenv
 load_dotenv()
 
-
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def service():
     #We take todays date and format it to the needed format
     DTnow = datetime.now() 
@@ -84,5 +83,5 @@ if __name__ == '__main__':
     from waitress import serve
 
     port = int(os.environ.get("PORT", 8008))
-    serve(app, port=port)
+    serve(app, host="0.0.0.0", port=port)
     # app.run(debug=True)
