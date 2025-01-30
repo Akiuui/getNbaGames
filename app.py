@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
-import schedule
 from pymongo import MongoClient
+from flask import Flask, jsonify
 
 from fetchers import fetchGames, fetchPlayersStats
 from formatters import deletePropsFromStruct, drillForProp
@@ -9,7 +9,11 @@ from formatters import deletePropsFromStruct, drillForProp
 from dotenv import load_dotenv
 load_dotenv()
 
-def Service():
+
+app = Flask(__name__)
+
+@app.route('/')
+def service():
     #We take todays date and format it to the needed format
     DTnow = datetime.now() 
     DTformatted = DTnow.strftime("%Y-%m-%d")
@@ -18,8 +22,9 @@ def Service():
     res = fetchGames(DTformatted)
 
     if res is None:
-        print("resJson is None")
-        exit()
+        return jsonify({"error": "Response is None"}), 404
+        # print("resJson is None")
+        # exit()
 
     #Formats all the data
     propsToDelete = [  
@@ -60,20 +65,24 @@ def Service():
         if filterGames:
             result = collection.insert_many(filterGames)
             if result.acknowledged:
-                print(f"Inserted {len(result.inserted_ids)} new games, into MongoDB")
+                return jsonify({"success": f"Inserted {len(result.inserted_ids)} new games, into MongoDB"}), 200
+                # print(f"Inserted {len(result.inserted_ids)} new games, into MongoDB")
             else:
-                print("Insertion failed!")
+                return jsonify({"error": "Insertion failed!"})
         else: 
-            print("No new games to insert.!")
-
+            return jsonify({"success": "No new games to insert"})
+            # print("No new games to insert.!")
     except Exception as e:
-        print(f"Error: {e}")
+        return jsonify({"error": f"Error: {e}"})
+        # print(f"Error: {e}")
     finally:
         client.close()
 
-schedule.every().day.at("19:35").do(Service)
 
-import time
-while True:
-    schedule.run_pending()  # Run the scheduled tasks
-    time.sleep(1)  # Sleep for a second between checks
+
+if __name__ == '__main__':
+    from waitress import serve
+
+    port = int(os.environ.get("PORT", 8008))
+    serve(app, port=port)
+    # app.run(debug=True)
