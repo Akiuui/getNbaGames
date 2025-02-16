@@ -63,17 +63,17 @@ def service():
 
         if filterGames:
             result = collection.insert_many(filterGames)
+
             if result.acknowledged:
-                return jsonify({"success": f"Inserted {len(result.inserted_ids)} new games, into MongoDB"}), 200
-                # print(f"Inserted {len(result.inserted_ids)} new games, into MongoDB")
+                return jsonify({"success": "Success"}), 200
             else:
-                return jsonify({"error": "Insertion failed!"})
+                return jsonify({"error": "Failed!"})
+
         else: 
-            return jsonify({"success": "No new games to insert"})
-            # print("No new games to insert.!")
+            return jsonify({"success": "No new games"})
+
     except Exception as e:
         return jsonify({"error": f"Error: {e}"})
-        # print(f"Error: {e}")
     finally:
         client.close()
 
