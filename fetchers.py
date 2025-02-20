@@ -9,6 +9,7 @@ def fetchGames(date):
     }
     res = requests.get(url, headers=headers)
 
+
     if res.status_code == 200:
         return res.json()
     else:

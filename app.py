@@ -16,14 +16,12 @@ def service():
     #We take todays date and format it to the needed format
     DTnow = datetime.now() 
     DTformatted = DTnow.strftime("%Y-%m-%d")
-
+    DTformatted = "2025-02-20"
     #Fetches games based on the date
     res = fetchGames(DTformatted)
 
     if res is None:
         return jsonify({"error": "Response is None"}), 404
-        # print("resJson is None")
-        # exit()
 
     #Formats all the data
     propsToDelete = [  
@@ -40,6 +38,7 @@ def service():
             ]
 
     games = []
+    
     for item in res["response"]:
         formatted = deletePropsFromStruct(item, propsToDelete)
         formatted = drillForProp(formatted, "date", "start")
@@ -81,7 +80,6 @@ def service():
 
 if __name__ == '__main__':
     from waitress import serve
-
+    # app.run(debug=True)
     port = int(os.environ.get("PORT", 8008))
     serve(app, host="0.0.0.0", port=port)
-    # app.run(debug=True)
