@@ -16,7 +16,7 @@ def service():
     #We take todays date and format it to the needed format
     DTnow = datetime.now() 
     DTformatted = DTnow.strftime("%Y-%m-%d")
-    DTformatted = "2025-02-20"
+    # DTformatted = "2025-02-20"
     #Fetches games based on the date
     res = fetchGames(DTformatted)
 
