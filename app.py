@@ -54,7 +54,7 @@ def service():
 
     # We connect and save the data to db
     try:
-        client = MongoClient(os.environ.get("MONGO-URI"), tls=True, tlsAllowInvalidCertificates=True)
+        client = MongoClient(os.environ.get("MONGO-URI"), tls=True)
         logging.info("Succesfully coneccted to mongoDb")
         db = client["NbaGames"]
         collection = db["NbaGames"]
