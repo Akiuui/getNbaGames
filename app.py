@@ -84,7 +84,10 @@ def service():
             return jsonify({"success": "No new games"})
 
     except Exception as e:
-        logging.error(f"There has been an exception! {e}")
+        # logging.error(f"There has been an exception! {e}")
+        logging.info(f"There has been an exception! {e.args}")
+        logging.info(f"The class! {e.__class__}")
+
         return jsonify({"error": f"Error: {e}"})
     finally:
         client.close()
