@@ -1,5 +1,6 @@
 import requests
 import os
+import logging
 
 def fetchGames(date):
     url = f"https://v2.nba.api-sports.io/games?date={date}"
@@ -15,9 +16,11 @@ def fetchGames(date):
         return None
     
 def fetchTeamId(teamCode):
-    url = f"moj teams api"
-
-    res = requests.get(url)
-    print(res)
-
-    # FROM RES GET ID AND RETURN IT
+        
+    url = f"https://getnbateams.onrender.com/getIdByCode?teamCode={teamCode}"
+    try:
+        res = requests.get(url)
+    except Exception as e:
+        logging.error("Exception: While fetching a team id")
+        
+    return int(res.text)

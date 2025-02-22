@@ -1,3 +1,6 @@
+from fetchers import fetchTeamId
+import logging
+
 def deletePropsFromStruct(data, delete):
     for item in delete:
         if item in data:
@@ -33,9 +36,11 @@ def formatGames(response):
     
     for item in response:
         item["_id"] = item["id"]
+        item["homeId"] = fetchTeamId(item["teams"]["home"]["code"])
+        item["visitorId"] = fetchTeamId(item["teams"]["visitors"]["code"])
         item.pop("id", None)
         item.pop("teams", None)
-        # item["homeId"] = 
+
 
         formatted = deletePropsFromStruct(item, propsToDelete)
         formatted = drillForProp(formatted, "date", "start")

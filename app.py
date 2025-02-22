@@ -1,11 +1,10 @@
 import os
 import logging
-from datetime import datetime
 from pymongo import MongoClient
 from flask import Flask, jsonify
 
 from fetchers import fetchGames
-from formatters import deletePropsFromStruct, drillForProp, formatGames
+from formatters import formatGames
 from utils import getTodaysDate
 
 from dotenv import load_dotenv
@@ -14,7 +13,6 @@ load_dotenv()
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 
 @app.route('/', methods=['GET'])
 def getGames():
@@ -63,26 +61,20 @@ def getGames():
     #Formats all the data
     games = formatGames(filterGames)
 
-    # for game in filterGames:
-        # game["HomeTeam"] = fetchTeamId(game["HomeTeam"]["code"])
-        # game["VisitorTeam"] = fetchTeamId(game["VisitorTeam"]["code"])
-
     if filterGames:
         logging.info("Trying to save my games")
         result = collection.insert_many(games)
 
         if result.acknowledged:
             logging.info("Successfuly saved!")
-            # return jsonify({"success": "Success"}), 200
-            return jsonify(games), 200
+            return jsonify({"success": "Success"}), 200
+            # return jsonify(games), 200
         else:
             logging.error("There has been an erorr with saving the results to mongoDb!")
             return jsonify({"error": "Failed!"})
 
     client.close()
     logging.info("There wasnt anything to save")
-    # return jsonify(games), 200
-
     return jsonify({"Success": "There wasnt anything to save"})
 
 
