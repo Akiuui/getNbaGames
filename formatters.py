@@ -35,7 +35,7 @@ def formatGames(response):
         item["_id"] = item["id"]
         item.pop("id", None)
         item.pop("teams", None)
-        item["homeId"] = 
+        # item["homeId"] = 
 
         formatted = deletePropsFromStruct(item, propsToDelete)
         formatted = drillForProp(formatted, "date", "start")
