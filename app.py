@@ -4,8 +4,9 @@ from datetime import datetime
 from pymongo import MongoClient
 from flask import Flask, jsonify
 
-from fetchers import fetchGames, fetchPlayersStats
-from formatters import deletePropsFromStruct, drillForProp
+from fetchers import fetchGames
+from formatters import deletePropsFromStruct, drillForProp, formatGames
+from utils import getTodaysDate
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,81 +17,73 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 @app.route('/', methods=['GET'])
-def service():
-    #We take todays date and format it to the needed format
-    DTnow = datetime.now() 
-    DTformatted = DTnow.strftime("%Y-%m-%d")
-    logging.info(f"The day used for fetching data is {DTformatted}")
-    # DTformatted = "2025-02-20"
-    #Fetches games based on the date
-    res = fetchGames(DTformatted)
+def getGames():
 
-    if res is None:
-        logging.error("The result from fetching is None")
-        return jsonify({"error": "Response is None"}), 404
-    else:
-        logging.info("The fetched data is not None")
+    todaysDate = getTodaysDate()
+    logging.info(f"The day used for fetching data is {todaysDate}")
+
+    logging.info("Trying to fetchGames")
+    res = fetchGames(todaysDate)
+
+    if res is None or res is []:
+        logging.error("Response is empty")
+        return jsonify({"error": "Response is empty"}), 404
         
-    #Formats all the data
-    propsToDelete = [  
-                "league",
-                "season",
-                "stage",
-                "status",
-                "periods",
-                "arena",
-                "officials",
-                "timesTied",
-                "leadChanges",
-                "nugget"
-            ]
-
-    games = []
-    
-    for item in res["response"]:
-        formatted = deletePropsFromStruct(item, propsToDelete)
-        formatted = drillForProp(formatted, "date", "start")
-        games.append(formatted)
-
+    logging.info("Successfully fetched the games")
+        
     # We connect and save the data to db
     try:
+        logging.info("Trying to connect to Mongo")
         client = MongoClient(os.environ.get("MONGO-URI"), tls=True)
-        logging.info("Succesfully coneccted to mongoDb")
-        db = client["NbaGames"]
-        collection = db["NbaGames"]
-
-        #Filtering duplicates
-        filterGames = []
-        for game in games:
-            if not collection.find_one({"_id": game["id"]}):
-                filterGames.append(game)
-
-        for game in filterGames:
-            game["_id"] = game["id"]
-            game.pop("id", None)
-
-        if filterGames:
-            result = collection.insert_many(filterGames)
-
-            if result.acknowledged:
-                logging.info("Successfuly saved!")
-                return jsonify({"success": "Success"}), 200
-            else:
-                logging.error("There has been an erorr with saving the results to mongoDb!")
-                return jsonify({"error": "Failed!"})
-
-        else: 
-            logging.info("The games for the day have already been saved!")
-            return jsonify({"success": "No new games"})
-
     except Exception as e:
-        # logging.error(f"There has been an exception! {e}")
         logging.info(f"There has been an exception! {e.args}")
         logging.info(f"The class! {e.__class__}")
 
-        return jsonify({"error": f"Error: {e}"})
-    finally:
-        client.close()
+    logging.info("Succesfully connected to mongoDb")
+    db = client["NbaGames"]
+    collection = db["NbaGames"]
+
+    #Filtering duplicates
+    logging.info("Trying to find a duplicate")
+    filterGames = []
+    found = 0
+    games = res["response"]
+
+    for game in games:
+        if not collection.find_one({"_id": game["id"]}):
+            filterGames.append(game)
+        else:
+            found+=1
+            
+    if found == 0:
+        logging.info("Didnt find any duplicates")
+    else:
+        logging.info(f"Found: {found} duplicates")
+
+    #Formats all the data
+    games = formatGames(filterGames)
+
+    # for game in filterGames:
+        # game["HomeTeam"] = fetchTeamId(game["HomeTeam"]["code"])
+        # game["VisitorTeam"] = fetchTeamId(game["VisitorTeam"]["code"])
+
+    if filterGames:
+        logging.info("Trying to save my games")
+        result = collection.insert_many(games)
+
+        if result.acknowledged:
+            logging.info("Successfuly saved!")
+            # return jsonify({"success": "Success"}), 200
+            return jsonify(games), 200
+        else:
+            logging.error("There has been an erorr with saving the results to mongoDb!")
+            return jsonify({"error": "Failed!"})
+
+    client.close()
+    logging.info("There wasnt anything to save")
+    # return jsonify(games), 200
+
+    return jsonify({"Success": "There wasnt anything to save"})
 
 
 

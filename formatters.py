@@ -15,4 +15,33 @@ def drillForProp(data, parent, child):
 
     return data
 
+propsToDelete = [  
+                "league",
+                "season",
+                "stage",
+                "status",
+                "periods",
+                "arena",
+                "officials",
+                "timesTied",
+                "leadChanges",
+                "nugget"
+                ]
+
+def formatGames(response):
+    games = []
+    
+    for item in response:
+        item["_id"] = item["id"]
+        item.pop("id", None)
+        item.pop("teams", None)
+        item["homeId"] = 
+
+        formatted = deletePropsFromStruct(item, propsToDelete)
+        formatted = drillForProp(formatted, "date", "start")
+  
+        # ZAMENI VISITORTEAM I HOMETEAM SA FUNCIJOM GET TEAMID
+        games.append(formatted)
+
+    return games
 

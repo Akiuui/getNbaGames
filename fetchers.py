@@ -9,11 +9,15 @@ def fetchGames(date):
     }
     res = requests.get(url, headers=headers)
 
-
     if res.status_code == 200:
         return res.json()
     else:
         return None
+    
+def fetchTeamId(teamCode):
+    url = f"moj teams api"
 
-def fetchPlayersStats():
-    return None
+    res = requests.get(url)
+    print(res)
+
+    # FROM RES GET ID AND RETURN IT
