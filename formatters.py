@@ -1,5 +1,3 @@
-from fetchers import fetchTeamId
-from GetNBAGames.staticIdsByCode import teamIdByCode
 import logging
 
 def deletePropsFromStruct(data, delete):

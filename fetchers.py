@@ -15,12 +15,12 @@ def fetchGames(date):
     else:
         return None
     
-def fetchTeamId(teamCode):
+# def fetchTeamId(teamCode):
         
-    url = f"https://getnbateams.onrender.com/getIdByCode?teamCode={teamCode}"
-    try:
-        res = requests.get(url)
-    except Exception as e:
-        logging.error("Exception: While fetching a team id")
+#     url = f"https://getnbateams.onrender.com/getIdByCode?teamCode={teamCode}"
+#     try:
+#         res = requests.get(url)
+#     except Exception as e:
+#         logging.error("Exception: While fetching a team id")
         
-    return int(res.text)
+#     return int(res.text)
