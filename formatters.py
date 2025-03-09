@@ -37,7 +37,7 @@ def formatGames(response):
     for item in response:
         item["_id"] = item["id"]
         item["homeId"] = teamIdByCode[item["teams"]["home"]["code"]]
-        item["visitorId"] = teamIdByCode[item["teams"]["home"]["code"]]
+        item["visitorId"] = teamIdByCode[item["teams"]["visitors"]["code"]]
         item.pop("id", None)
         item.pop("teams", None)
 
