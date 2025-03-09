@@ -1,4 +1,5 @@
 import logging
+from staticIdsByCode import teamIdByCode
 
 def deletePropsFromStruct(data, delete):
     for item in delete:
