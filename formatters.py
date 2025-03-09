@@ -1,4 +1,5 @@
 from fetchers import fetchTeamId
+from GetNBAGames.staticIdsByCode import teamIdByCode
 import logging
 
 def deletePropsFromStruct(data, delete):
@@ -36,8 +37,8 @@ def formatGames(response):
     
     for item in response:
         item["_id"] = item["id"]
-        item["homeId"] = fetchTeamId(item["teams"]["home"]["code"])
-        item["visitorId"] = fetchTeamId(item["teams"]["visitors"]["code"])
+        item["homeId"] = teamIdByCode[item["teams"]["home"]["code"]]
+        item["visitorId"] = teamIdByCode[item["teams"]["home"]["code"]]
         item.pop("id", None)
         item.pop("teams", None)
 
