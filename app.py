@@ -2,6 +2,7 @@ import os
 import logging
 from pymongo import MongoClient
 from flask import Flask, jsonify
+from flask_cors import CORS
 
 from fetchers import fetchGames
 from formatters import formatGames
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -78,7 +80,7 @@ def saveGames():
     return jsonify({"Success": "There wasnt anything to save"})
 
 @app.route("/getTodays", methods=["GET"])
-def saveGames():
+def getGames():
 
     todaysDate = getTodaysDate()
     logging.info(f"The day used for fetching data is {todaysDate}")
@@ -95,13 +97,14 @@ def saveGames():
     collection = db["NbaGames"]
 
     found = collection.find({"start": {"$regex": todaysDate}})
+    found = list(found)
 
     if len(found) == 0:
         logging.info("No games found for this date")
         return jsonify({"Failed": "No games found for this date"}), 400
     
     client.close()
-    logging.info("We found "+len(found+" games"))
+    logging.info("We found "+str(len(found))+" games")
     return jsonify({"res": found})
 
 
