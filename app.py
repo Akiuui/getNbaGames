@@ -14,8 +14,8 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-@app.route('/', methods=['GET'])
-def getGames():
+@app.route('/saveTodays', methods=['POST'])
+def saveGames():
 
     todaysDate = getTodaysDate()
     logging.info(f"The day used for fetching data is {todaysDate}")
@@ -77,10 +77,36 @@ def getGames():
     logging.info("There wasnt anything to save")
     return jsonify({"Success": "There wasnt anything to save"})
 
+@app.route("/getTodays", methods=["GET"])
+def saveGames():
+
+    todaysDate = getTodaysDate()
+    logging.info(f"The day used for fetching data is {todaysDate}")
+
+    try:
+        logging.info("Trying to connect to Mongo")
+        client = MongoClient(os.environ.get("MONGO-URI"), tls=True)
+    except Exception as e:
+        logging.info(f"There has been an exception! {e.args}")
+        logging.info(f"The class! {e.__class__}")
+
+    logging.info("Succesfully connected to mongoDb")
+    db = client["NbaGames"]
+    collection = db["NbaGames"]
+
+    found = collection.find({"start": {"$regex": todaysDate}})
+
+    if len(found) == 0:
+        logging.info("No games found for this date")
+        return jsonify({"Failed": "No games found for this date"}), 400
+    
+    client.close()
+    logging.info("We found "+len(found+" games"))
+    return jsonify({"res": found})
 
 
 if __name__ == '__main__':
     from waitress import serve
     # app.run(debug=True)
-    port = int(os.environ.get("PORT", 8008))
-    serve(app, host="0.0.0.0", port=port)
+    # port = int(os.environ.get("PORT", 8008))
+    serve(app, host="0.0.0.0", port=8008)
