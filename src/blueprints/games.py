@@ -5,13 +5,19 @@ import os
 
 games_bp = Blueprint("games", __name__)
 
-@games_bp.route("/saveTodays", methods=["POST"])
+@games_bp.route("/saveTodays", methods=["GET"])
 def saveGames():
 
-    authKey = request.headers.get("Authorization", "").strip()
+    logging.info(f"All headers: {dict(request.environ)}")
+    if request.headers.get("Auth"):
+        authKey = request.headers.get("Auth")
+    else:
+        authKey = request.environ.get("Auth")
 
+    # logging.info(f"Header kljuc: {authKey}")
+    # logging.info(f"Sifra: {os.environ.get('AUTH')}")
     if not authKey or authKey != os.environ.get("AUTH").strip():
-        abort(401, description="Unauthorized access")
+        abort(401, description="Unauthorized access: AUTH header is empty")
 
     logging.info("Passed the authorization")
 
